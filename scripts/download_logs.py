@@ -28,49 +28,6 @@ def ensure_data_directory():
     raw_data_dir.mkdir(parents=True, exist_ok=True)
     return raw_data_dir
 
-
-def load_downloaded_files_registry():
-    """
-    Load the registry of previously downloaded files.
-    
-    Returns:
-        set: Set of filenames that have been previously downloaded
-    """
-    registry_file = Path('data/downloaded_files.json')
-    
-    if registry_file.exists():
-        try:
-            with open(registry_file, 'r') as f:
-                data = json.load(f)
-                return set(data.get('downloaded_files', []))
-        except (json.JSONDecodeError, KeyError) as e:
-            logging.warning(f"Could not load registry file: {e}. Starting fresh.")
-            return set()
-    
-    return set()
-
-
-def save_downloaded_files_registry(downloaded_files_set):
-    """
-    Save the registry of downloaded files.
-    
-    Args:
-        downloaded_files_set (set): Set of downloaded filenames
-    """
-    registry_file = Path('data/downloaded_files.json')
-    
-    data = {
-        'last_updated': datetime.now().isoformat(),
-        'downloaded_files': list(downloaded_files_set)
-    }
-    
-    try:
-        with open(registry_file, 'w') as f:
-            json.dump(data, f, indent=2)
-    except Exception as e:
-        logging.error(f"Could not save registry file: {e}")
-
-
 def parse_log_filename_date(filename):
     """
     Extract date from log filename pattern: access.log-2025-08-13-1755043209
@@ -133,23 +90,26 @@ def list_remote_log_files(sftp_client, remote_directory, logger):
         logger.error(f"Error listing remote directory: {str(e)}")
         return []
 
+def get_existing_raw_files():
+    raw_data_dir = Path('data/raw')
+    return set(f.name for f in raw_data_dir.glob("access.log*") if f.is_file())
 
-def filter_files_to_download(log_files, downloaded_registry, logger):
+def filter_files_to_download(log_files, logger):
     """
     Filter log files to only include those that:
     1. Have dates before today
-    2. Haven't been downloaded before
+    2. Aren't already present in data/raw
     3. Are actual log files (not directories, compressed files, etc.)
     
     Args:
         log_files (list): List of tuples (filename, date)
-        downloaded_registry (set): Set of previously downloaded filenames
         logger: Logger instance
         
     Returns:
         list: Filtered list of (filename, date) tuples to download
     """
     today = date.today()
+    existing_files = get_existing_raw_files()
     to_download = []
     
     for filename, file_date in log_files:
@@ -166,8 +126,8 @@ def filter_files_to_download(log_files, downloaded_registry, logger):
             continue
         
         # Skip if already downloaded
-        if filename in downloaded_registry:
-            logger.debug(f"Skipping {filename}: already downloaded")
+        if filename in existing_files:
+            logger.debug(f"Skipping {filename}: already exists in raw folder")
             continue
         
         logger.debug(f"FILTER: Adding {filename} to download list")
@@ -296,10 +256,6 @@ def main():
     # Ensure data directory exists
     local_dir = ensure_data_directory()
     
-    # Load registry of previously downloaded files
-    downloaded_registry = load_downloaded_files_registry()
-    logger.info(f"Loaded registry with {len(downloaded_registry)} previously downloaded files")
-    
     # Connect to SFTP server
     sftp_client, ssh_client = connect_sftp(SFTP_CONFIG, logger)
     
@@ -322,7 +278,7 @@ def main():
             return False
         
         # Filter files to download (exclude today's date and already downloaded)
-        files_to_download = filter_files_to_download(log_files, downloaded_registry, logger)
+        files_to_download = filter_files_to_download(log_files, logger)
         
         if not files_to_download:
             logger.info("No new files to download")
@@ -339,12 +295,6 @@ def main():
                 new_downloads.add(filename)
             else:
                 logger.warning(f"Failed to download {filename}")
-        
-        # Update registry with newly downloaded files
-        if new_downloads:
-            updated_registry = downloaded_registry.union(new_downloads)
-            save_downloaded_files_registry(updated_registry)
-            logger.info(f"Updated registry with {len(new_downloads)} new entries")
         
         # Summary
         logger.info(f"\nDownload Summary:")
