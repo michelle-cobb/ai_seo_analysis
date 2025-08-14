@@ -8,8 +8,9 @@ __pycache__/
 pyvenv.cfg
 scripts/*.exe
 .vscode/
-Activate.ps1
-activate
-activate.bat
-activate.fish
-deactivate.bat
+scripts/Activate.ps1
+scripts/activate
+scripts/activate.bat
+scripts/activate.fish
+scripts/deactivate.bat
+lib/site-packages/*
