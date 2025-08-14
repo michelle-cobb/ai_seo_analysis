@@ -1,13 +1,18 @@
 import csv
+import subprocess
 from pathlib import Path
 from collections import Counter, defaultdict
-from scripts.utils import BOT_KEYWORDS
+from scripts.common import parse_args, BOT_KEYWORDS
 
-def get_latest_aggregated_file(processed_dir):
-    files = list(processed_dir.glob("ai_bot_traffic_*.csv"))
-    if not files:
-        raise FileNotFoundError("No aggregated bot traffic files found.")
-    return max(files, key=lambda f: f.stat().st_mtime)
+def run_aggregation(start_date=None, end_date=None):
+    cmd = "python -m scripts.aggregate_bot_traffic"
+    if start_date:
+        cmd += " --start-date " + start_date
+    if end_date:
+        cmd += " --end-date " + end_date
+    result = subprocess.run(cmd, check=True, capture_output=True, text=True)
+    output_file = result.stdout.strip().splitlines()[-1]  # Get the last line
+    return output_file
 
 def analyze_bot_hits(csv_file):
     resource_counter = Counter()
@@ -46,9 +51,9 @@ def print_analysis(resource_counter, bot_resource_counter):
             print(f"  {resource}: {count}")
 
 if __name__ == "__main__":
-    processed_dir = Path("data/processed")
-    latest_file = get_latest_aggregated_file(processed_dir)
-    print(f"Analyzing file: {latest_file}")
+    args = parse_args("Hit count analysis.")
+    output_file = run_aggregation(start_date=args.start_date, end_date=args.end_date)
+    print(f"Analyzing file: {output_file}")
 
-    resource_counter, bot_resource_counter = analyze_bot_hits(latest_file)
+    resource_counter, bot_resource_counter = analyze_bot_hits(Path(output_file))
     print_analysis(resource_counter, bot_resource_counter)

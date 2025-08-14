@@ -1,6 +1,13 @@
 import sys
 import logging
 from pathlib import Path
+import argparse
+
+def parse_args(description_arg: str):
+    parser = argparse.ArgumentParser(description=description_arg)
+    parser.add_argument("--start-date", type=str, default=None, help="Start date (YYYY-MM-DD)")
+    parser.add_argument("--end-date", type=str, default=None, help="End date (YYYY-MM-DD)")
+    return parser.parse_args()
 
 # Define bot keywords and exclusion terms
 BOT_KEYWORDS = [
@@ -36,7 +43,7 @@ def setup_logging(log_filename: str = 'download.log'):
         logger.handlers.clear()
 
     # File handler
-    fh = logging.FileHandler(log_file_full_name)
+    fh = logging.FileHandler(log_file_full_name, encoding="utf-8")
     fh.setLevel(logging.DEBUG)
     formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
     fh.setFormatter(formatter)

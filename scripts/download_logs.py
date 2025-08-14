@@ -12,7 +12,7 @@ import json
 import re
 from pathlib import Path
 from datetime import datetime, date
-from scripts.utils import setup_logging
+from scripts.common import setup_logging
 
 
 try:
