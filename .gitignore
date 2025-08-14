@@ -6,3 +6,5 @@ __pycache__/
 *.pyc
 .env
 pyvenv.cfg
+scripts/*.exe
+.vscode/
