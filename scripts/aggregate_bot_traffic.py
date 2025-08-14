@@ -1,7 +1,7 @@
 import csv
 import re
 from datetime import datetime
-import logging
+from pathlib import Path
 from scripts.utils import setup_logging, BOT_KEYWORDS, GOOGLEBOT_EXCLUSIONS
 
 # Directory containing log files
