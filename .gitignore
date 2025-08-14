@@ -1,0 +1,7 @@
+config/credentials.py
+data/raw/*
+data/processed/*
+data/*
+__pycache__/
+*.pyc
+.env
