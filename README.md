@@ -9,6 +9,7 @@ This project automates the download, aggregation, and analysis of web server acc
 - **Bot traffic aggregation:** Extracts and aggregates records for major AI bots.
 - **Flexible date filtering:** Aggregate and analyze logs for any date range.
 - **Hit count analysis:** Ranks requested resources by AI bot hit counts, both overall and per bot.
+- **Qualitative LLM insights:** Optionally connects to any LLM that uses the same API structure as required by the OpenAI Python library (such as OpenAI, Gemini, etc.) for qualitative analysis of bot traffic.
 - **Modular scripts:** Easily extend or integrate with other analytics workflows.
 
 ## Directory Structure
@@ -20,6 +21,7 @@ ai_seo_analysis/
 │   ├── download_logs.py          # Downloads logs via SFTP
 │   ├── aggregate_bot_traffic.py  # Aggregates AI bot traffic from logs
 │   ├── hit_count_analysis.py     # Analyzes and ranks resource hits
+│   ├── qualitative_analysis.py   # Submits AI bot traffic to an LLM for qualitative insights
 │   ├── common.py                 # Shared utilities and constants
 │   └── __init__.py               # Makes Scripts a Python package
 │
@@ -58,9 +60,9 @@ ai_seo_analysis/
    pip install -r requirements.txt
    ```
 
-4. **Configure SFTP credentials:**
+4. **Configure SFTP and LLM credentials:**
    - Copy `config/credentials.py.example` to `config/credentials.py`
-   - Fill in your SFTP details and log directory paths.
+   - Fill in your SFTP details, log directory paths, and LLM API configuration (optional).
 
 ## Usage
 
@@ -89,13 +91,21 @@ Runs aggregation and then analyzes the aggregated file for resource hit counts. 
 
 - **Add new bots:** Update `BOT_KEYWORDS` and potentially `GOOGLEBOT_EXCLUSIONS` in `scripts/common.py`.
 - **Change log format parsing:** The current parsing logic is based on the Kinsta access log format. If your access logs are formatted differently, edit the extraction logic in `aggregate_bot_traffic.py`.
+- **Use a different LLM:** Any LLM provider that supports the same API structure as required by the OpenAI Python library can be configured via `config/credentials.py`.
+
 
 ## Troubleshooting
 
 - **Module import errors:** Make sure you run scripts from the project root and use the `-m` flag.
 - **SFTP issues:** Check your credentials and network connectivity.
 - **Log encoding errors:** Ensure your terminal and log files use UTF-8 encoding.
+- **LLM errors:** Ensure your API key and base URL are correct and that your provider has an OpenAI-compatible API.
+
 
 ## Contributing
 
 Pull requests and issues are welcome! Please follow best practices for Python projects and keep sensitive credentials out of version control.
+
+## License
+
+MIT License
