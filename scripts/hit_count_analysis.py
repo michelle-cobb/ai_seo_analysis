@@ -15,14 +15,17 @@ def run_aggregation(start_date=None, end_date=None):
     return output_file
 
 def analyze_bot_hits(csv_file):
+    all_hits = 0
     resource_counter = Counter()
+    bot_total_hits = Counter()
     bot_resource_counter = defaultdict(Counter)
 
     with open(csv_file, "r", encoding="utf-8") as f:
         reader = csv.DictReader(f)
         for row in reader:
             resource = row.get("requested_resource", "").strip()
-            resource = resource.strip("/")  # Normalize resource path
+            if (resource != "/"):
+                resource = resource.strip("/")  # Normalize resource path
             user_agent = row.get("user_agent", "").lower()
             if not resource or not user_agent:
                 continue
@@ -36,17 +39,19 @@ def analyze_bot_hits(csv_file):
 
             resource_counter[resource] += 1
             bot_resource_counter[bot][resource] += 1
+            bot_total_hits[bot] += 1
+            all_hits += 1
 
-    return resource_counter, bot_resource_counter
+    return resource_counter, bot_resource_counter, bot_total_hits, all_hits
 
-def print_analysis(resource_counter, bot_resource_counter):
-    print("=== Overall Resource Hit Counts (All AI Bots) ===")
+def print_analysis(resource_counter, bot_resource_counter, bot_total_hits, all_hits):
+    print(f"=== Overall Resource Hit Counts (All AI Bots, {all_hits} Total Hits) ===")
     for resource, count in resource_counter.most_common():
         print(f"{resource}: {count}")
 
     print("\n=== Resource Hit Counts by Bot ===")
     for bot, counter in bot_resource_counter.items():
-        print(f"\nBot: {bot}")
+        print(f"\nBot: {bot} (Hits = {bot_total_hits[bot]})")
         for resource, count in counter.most_common():
             print(f"  {resource}: {count}")
 
@@ -55,5 +60,5 @@ if __name__ == "__main__":
     output_file = run_aggregation(start_date=args.start_date, end_date=args.end_date)
     print(f"Analyzing file: {output_file}")
 
-    resource_counter, bot_resource_counter = analyze_bot_hits(Path(output_file))
-    print_analysis(resource_counter, bot_resource_counter)
+    resource_counter, bot_resource_counter, bot_total_hits, all_hits = analyze_bot_hits(Path(output_file))
+    print_analysis(resource_counter, bot_resource_counter, bot_total_hits, all_hits)
