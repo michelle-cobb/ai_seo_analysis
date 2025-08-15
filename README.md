@@ -76,16 +76,23 @@ Downloads new access logs to `data/raw/`. You'll want to set up a process to run
 ### 2. Aggregate AI Bot Traffic
 
 ```sh
-python -m Scripts.aggregate_bot_traffic --start-date YYYY-MM-DD --end-date YYYY-MM-DD
+python -m scripts.aggregate_bot_traffic --start-date YYYY-MM-DD --end-date YYYY-MM-DD
 ```
 Aggregates AI bot traffic for the specified date range (optional). If no date range is provided, all AI bot traffic is included.
 
 ### 3. Analyze Hit Counts
 
 ```sh
-python -m Scripts.hit_count_analysis --start-date YYYY-MM-DD --end-date YYYY-MM-DD
+python -m scripts.hit_count_analysis --start-date YYYY-MM-DD --end-date YYYY-MM-DD
 ```
 Runs aggregation and then analyzes the aggregated file for resource hit counts. If no date range is provided, all AI bot traffic is included in the analysis.
+
+### 4. Qualitative Analysis
+
+```sh
+python -m scripts.qualitative_analysis --start-date YYYY-MM-DD --end-date YYYY-MM-DD
+```
+Runs aggregation and then submits the aggregated AI bot traffic file to an LLM for qualitative insights. If no date range is provided, all AI bot traffic is included in the analysis.
 
 ## Customization
 
